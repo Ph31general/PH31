@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PH31 Portal</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background: linear-gradient(135deg, #f4f6fa, #dfe9f3);
+    }
+    nav {
+      background: linear-gradient(90deg, #2c3e50, #34495e);
+      padding: 1rem;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    nav h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      letter-spacing: 1px;
+    }
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      font-weight: 500;
+    }
+    .nav-links span {
+      cursor: pointer;
+      transition: color 0.3s;
+    }
+    .nav-links span:hover {
+      color: #1abc9c;
+    }
+    #logoutBtn {
+      background: #e74c3c;
+      border: none;
+      color: white;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      border-radius: 8px;
+      display: none;
+      transition: background 0.3s;
+    }
+    #logoutBtn:hover {
+      background: #c0392b;
+    }
+    .container { padding: 2rem; }
+    .login-box {
+      max-width: 400px;
+      margin: 80px auto;
+      padding: 2rem;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+      animation: fadeIn 0.7s ease-in-out;
+    }
+    .login-box h2 { text-align: center; margin-bottom: 1.5rem; color: #2c3e50; }
+    .login-box input {
+      width: 100%;
+      padding: 12px;
+      margin: 12px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      transition: border 0.3s;
+    }
+    .login-box input:focus { border-color: #3498db; outline: none; }
+    .login-box button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      background: linear-gradient(90deg, #3498db, #2980b9);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 8px;
+      margin-top: 12px;
+      transition: transform 0.2s;
+    }
+    .login-box button:hover { transform: scale(1.03); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 15px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transition: transform 0.3s, background 0.3s;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .card:hover { transform: translateY(-5px) scale(1.05); background: #ecf0f1; }
+    iframe {
+      width: 100%;
+      height: 350px;
+      border: none;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .pdf-link {
+      display: block;
+      background: linear-gradient(90deg, #2ecc71, #27ae60);
+      color: white;
+      padding: 0.8rem;
+      border-radius: 8px;
+      margin: 0.7rem 0;
+      text-decoration: none;
+      text-align: center;
+      font-weight: bold;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+    .pdf-link:hover { transform: scale(1.05); }
+    .back-btn {
+      margin-bottom: 1rem;
+      background: linear-gradient(90deg, #e67e22, #d35400);
+      color: white;
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .back-btn:hover { transform: scale(1.05); }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <h1>PH31 Portal</h1>
+    <div class="nav-links">
+      <span onclick="openSection('records')">Records</span>
+      <span onclick="openSection('pdfs')">PDFs</span>
+      <span onclick="openSection('videos')">Videos</span>
+    </div>
+    <button id="logoutBtn" onclick="logout()">Logout</button>
+  </nav>
+
+  <!-- Login/Register -->
+  <div id="login-section" class="container">
+    <div class="login-box">
+      <h2>Login / Register</h2>
+      <input type="email" id="email" placeholder="Email">
+      <input type="password" id="password" placeholder="Password">
+      <button onclick="login()">Login</button>
+      <button onclick="register()">Register</button>
+    </div>
+  </div>
+
+  <!-- Subjects -->
+  <div id="subjects-section" class="container" style="display:none;">
+    <h2 id="section-title"></h2>
+    <div class="grid" id="subjects-grid"></div>
+  </div>
+
+  <!-- Content -->
+  <div id="content-section" class="container" style="display:none;">
+    <button class="back-btn" onclick="goBack()">← Back</button>
+    <h2 id="content-title"></h2>
+    <div id="content-body"></div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+  <script>
+    // Firebase initialization
+    const firebaseConfig = {
+      apiKey: "AIzaSyBLqSDPJuAz14fRXayuWtXwA6IS1OZaE_4",
+      authDomain: "as-game-c18d8.firebaseapp.com",
+      projectId: "as-game-c18d8",
+      storageBucket: "as-game-c18d8.appspot.com",
+      messagingSenderId: "95306988046",
+      appId: "1:95306988046:web:3b5399b25ec12c47ff9a5f",
+      measurementId: "G-DNQ1E0WYSY"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // Detect logged-in user
+    auth.onAuthStateChanged(function(user) {
+      if (user) {
+        document.getElementById("login-section").style.display = "none";
+        document.getElementById("subjects-section").style.display = "block";
+        document.getElementById("logoutBtn").style.display = "block";
+        openSection('records');
+      }
+    });
+
+    // Login
+    function login() {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      if (!email || !password) { alert("Please enter email and password"); return; }
+
+      auth.signInWithEmailAndPassword(email, password)
+        .then(function(userCredential) {
+          alert("Login successful!");
+          document.getElementById("login-section").style.display = "none";
+          document.getElementById("subjects-section").style.display = "block";
+          document.getElementById("logoutBtn").style.display = "block";
+          openSection('records');
+        })
+        .catch(function(error) {
+          alert("Login failed: " + error.message);
+        });
+    }
+
+    // Register
+    function register() {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      if (!email || !password) { alert("Please enter email and password"); return; }
+
+      auth.createUserWithEmailAndPassword(email, password)
+        .then(function(userCredential) {
+          alert("Registered successfully! You can now log in.");
+        })
+        .catch(function(error) {
+          alert("Registration failed: " + error.message);
+        });
+    }
+
+    // Logout
+    function logout() {
+      auth.signOut().then(function() {
+        document.getElementById("login-section").style.display = "block";
+        document.getElementById("subjects-section").style.display = "none";
+        document.getElementById("logoutBtn").style.display = "none";
+      });
+    }
+
+    // Subjects
+    const subjects = [
+      "Basic Pharmaceutical Organic Chemistry",
+      "Pharmaceutical Analytical Chemistry I",
+      "Pharmacy Orientation",
+      "Information Technology",
+      "Human Rights & Fighting Corruption",
+      "English Language",
+      "Pharmacognosy I",
+      "Cell Biology"
+    ];
+
+    // Open Section
+    function openSection(type) {
+      document.getElementById("subjects-section").style.display = "block";
+      document.getElementById("content-section").style.display = "none";
+      const grid = document.getElementById("subjects-grid");
+      grid.innerHTML = "";
+      document.getElementById("section-title").textContent = type.toUpperCase();
+      subjects.forEach(function(subject) {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.textContent = subject;
+        card.onclick = function() { openContent(subject, type); };
+        grid.appendChild(card);
+      });
+    }
+
+    // Open Content
+    function openContent(subject, type) {
+      document.getElementById("subjects-section").style.display = "none";
+      document.getElementById("content-section").style.display = "block";
+      document.getElementById("content-title").textContent = subject + " - " + type;
+      document.getElementById("content-body").innerHTML =
+        "<p>Here you will find all <strong>" + type + "</strong> materials for <strong>" + subject + "</strong>.</p>";
+    }
+
+    // Back Button
+    function goBack() {
+      document.getElementById("content-section").style.display = "none";
+      document.getElementById("subjects-section").style.display = "block";
+    }
+  </script>
+</body>
+</html>
